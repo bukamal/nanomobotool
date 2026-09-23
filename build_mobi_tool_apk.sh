@@ -19,6 +19,12 @@ uv sync
 # uv does not seed pip, but flet build shells out to `<venv python> -m pip`.
 uv run python -m ensurepip --upgrade >/dev/null 2>&1 || true
 
+# Marker for "APKs newer than this file came from THIS build". Written before
+# the build so stale artifacts left in build/ by an abandoned or different
+# invocation can never be picked up (see the find below).
+build_marker="$(mktemp)"
+trap 'rm -f "$build_marker"' EXIT
+
 echo "== building APK (retrying once on a pub.dev flake) =="
 if ! uv run flet build apk --split-per-abi; then
     echo "== first attempt failed; clearing pub cache and retrying =="
@@ -26,16 +32,19 @@ if ! uv run flet build apk --split-per-abi; then
     uv run flet build apk --split-per-abi
 fi
 
-mkdir -p dist
 # flet's output directory has moved between releases; find the APKs instead of
-# hardcoding a path that may no longer exist.
-mapfile -t apks < <(find build -name '*.apk' -newermt '-2 hours' 2>/dev/null)
+# hardcoding a path that may no longer exist. "Newer than the marker written
+# just before the build" is exact, unlike a wall-clock window: --split-per-abi
+# emits one APK per ABI and leaves no app-release.apk, but a plain
+# `flet build apk` does, and that file can sit in build/ for days.
+mapfile -t apks < <(find build -name '*.apk' -newer "$build_marker" 2>/dev/null)
 
 if [ "${#apks[@]}" -eq 0 ]; then
     echo "ERROR: build reported success but no APK was found under build/" >&2
     exit 1
 fi
 
+mkdir -p dist
 for apk in "${apks[@]}"; do
     cp -v "$apk" dist/
 done

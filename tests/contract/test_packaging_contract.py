@@ -8,6 +8,7 @@ Android build is broken even though every other test passes.
 from __future__ import annotations
 
 import ast
+import re
 import sys
 from pathlib import Path
 
@@ -59,6 +60,22 @@ def test_pyjnius_is_an_android_dependency():
     data = _load_pyproject()
     deps = data["tool"]["flet"]["android"]["dependencies"]
     assert "pyjnius" in deps
+
+
+def test_flet_is_capped_below_1_0():
+    """Flet 1.0 removed ft.ElevatedButton; an unpinned range would let a fresh
+    `uv sync` (CI, or the APK build script) resolve 1.0 and break the build.
+
+    Guarded on the raw text because the requirement string is data, not a
+    parsed structure: tomllib gives it back verbatim, but a rewrite of this
+    file could legitimately reformat the table, and the point of the test is
+    the cap itself surviving.
+    """
+    text = PYPROJECT.read_text(encoding="utf-8")
+    assert re.search(r'"flet[><=~!^]*[0-9][^"]*,\s*<1(\.0)?[0-9.]*"', text) is not None, (
+        "flet must stay capped below 1.0 (e.g. 'flet>=0.85.2,<1.0'); Flet 1.0 "
+        "removed the API this app uses"
+    )
 
 
 def _imported_modules(path: Path) -> set[str]:

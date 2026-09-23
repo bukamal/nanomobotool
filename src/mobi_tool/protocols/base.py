@@ -28,14 +28,14 @@ class DeviceProtocol(ABC):
     def can_handle(self, device: UsbDeviceInfo) -> bool:
         """Cheap check, no I/O. Usually compares device.mode.transport."""
 
-    def connect(self, device: UsbDeviceInfo) -> None:
+    def connect(self, device: UsbDeviceInfo) -> None:  # noqa: B027 - optional hook
         """Perform the handshake and put the device into a known state.
 
         Default no-op: protocols that need no handshake (e.g. fastboot) simply
         override nothing here.
         """
 
-    def disconnect(self, device: UsbDeviceInfo) -> None:
+    def disconnect(self, device: UsbDeviceInfo) -> None:  # noqa: B027 - optional hook
         """Release interfaces, close the connection, leave the device safe."""
 
     @abstractmethod

@@ -51,7 +51,7 @@ class DevicesView:
                             spacing=2,
                             expand=True,
                         ),
-                        ft.ElevatedButton(
+                        ft.Button(
                             "تحديث",
                             icon=ft.Icons.REFRESH,
                             on_click=self.refresh,

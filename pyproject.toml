@@ -4,11 +4,11 @@ version = "0.1.0"
 description = "Nano Mobi Tool - Android-native mobile device servicing toolkit"
 requires-python = ">=3.10"
 dependencies = [
-    # Verified against 0.85.2. Flet renamed several control helpers across the
-    # 0.8x line (ft.padding.* -> ft.Padding.*, ft.alignment.center ->
-    # ft.Alignment.CENTER, ft.border.all -> ft.Border.all). tests/unit and
-    # tests/integration catch that drift on upgrade.
-    "flet>=0.85.2",
+    # Pinned to <1.0: Flet 1.0.1 removed ft.ElevatedButton (deprecated since
+    # 0.80.0), which breaks devices_view and the APK build. tests/unit and
+    # tests/integration catch that drift on upgrade; tests/contract pins the
+    # cap itself so an edit here cannot silently unpin it.
+    "flet>=0.85.2,<1.0",
 ]
 
 [project.optional-dependencies]
